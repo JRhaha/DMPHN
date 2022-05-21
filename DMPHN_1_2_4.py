@@ -20,8 +20,8 @@ from torch.utils.tensorboard import SummaryWriter
 parser = argparse.ArgumentParser(description="Deep Multi-Patch Hierarchical Network")
 parser.add_argument("-e","--epochs",type = int, default = 2400)
 parser.add_argument("-se","--start_epoch",type = int, default = 0)
-parser.add_argument("-b","--batchsize",type = int, default = 1)
-parser.add_argument("-s","--imagesize",type = int, default = 128)
+parser.add_argument("-b","--batchsize",type = int, default = 2)
+parser.add_argument("-s","--imagesize",type = int, default = 256)
 parser.add_argument("-l","--learning_rate", type = float, default = 0.0001)
 parser.add_argument("-g","--gpu",type=int, default=0)
 args = parser.parse_args()
@@ -270,13 +270,13 @@ def main():
             print("整体测试集上的Loss：{}".format(total_test_loss))#item：把tensorboard转化为真实数据    
             writer.add_scalar("test_loss",total_test_loss,epoch)
             
-        torch.save(encoder_lv1.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv1.pkl"))
-        torch.save(encoder_lv2.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv2.pkl"))
-        torch.save(encoder_lv3.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv3.pkl"))
-
-        torch.save(decoder_lv1.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv1.pkl"))
-        torch.save(decoder_lv2.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv2.pkl"))
-        torch.save(decoder_lv3.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv3.pkl"))
+        torch.save(encoder_lv1.state_dict(),str('./newcheckpoints/' + METHOD + "/encoder_lv1.pkl"))
+        torch.save(encoder_lv2.state_dict(),str('./newcheckpoints/' + METHOD + "/encoder_lv2.pkl"))
+        torch.save(encoder_lv3.state_dict(),str('./newcheckpoints/' + METHOD + "/encoder_lv3.pkl"))
+        
+        torch.save(decoder_lv1.state_dict(),str('./newcheckpoints/' + METHOD + "/decoder_lv1.pkl"))
+        torch.save(decoder_lv2.state_dict(),str('./newcheckpoints/' + METHOD + "/decoder_lv2.pkl"))
+        torch.save(decoder_lv3.state_dict(),str('./newcheckpoints/' + METHOD + "/decoder_lv3.pkl"))
         print("模型已保存")
     writer.close()  
 
