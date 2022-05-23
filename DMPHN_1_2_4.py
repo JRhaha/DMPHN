@@ -18,11 +18,11 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description="Deep Multi-Patch Hierarchical Network")
-parser.add_argument("-e","--epochs",type = int, default = 2400)
+parser.add_argument("-e","--epochs",type = int, default = 1000)
 parser.add_argument("-se","--start_epoch",type = int, default = 0)
-parser.add_argument("-b","--batchsize",type = int, default = 2)
-parser.add_argument("-s","--imagesize",type = int, default = 256)
-parser.add_argument("-l","--learning_rate", type = float, default = 0.0001)
+parser.add_argument("-b","--batchsize",type = int, default = 1)
+parser.add_argument("-s","--imagesize",type = int, default = 320)
+parser.add_argument("-l","--learning_rate", type = float, default = 0.00002)
 parser.add_argument("-g","--gpu",type=int, default=0)
 args = parser.parse_args()
 
@@ -36,9 +36,9 @@ IMAGE_SIZE = args.imagesize
 
 def save_deblur_images(images, iteration, epoch):
 
-    if os.path.exists('./newcheckpoints/' + METHOD) == False:
-        os.system('./newcheckpoints/' + METHOD)  
-    filename = './newcheckpoints/' + METHOD + "/epoch" + str(epoch)  + "Iter_" + str(iteration) + "_deblur.png"
+    if os.path.exists('./checkpoints/' + METHOD) == False:
+        os.system('./checkpoints/' + METHOD)  
+    filename = './checkpoints/' + METHOD + "/epoch" + str(epoch)  + "Iter_" + str(iteration) + "_deblur.png"
     torchvision.utils.save_image(images, filename)
 
 def weight_init(m):
@@ -79,20 +79,20 @@ def main():
     decoder_lv1.apply(weight_init).cuda(GPU)    
     decoder_lv2.apply(weight_init).cuda(GPU)
     decoder_lv3.apply(weight_init).cuda(GPU)
-    
-    encoder_lv1_optim = torch.optim.Adam(encoder_lv1.parameters(),lr=LEARNING_RATE)
-    encoder_lv1_scheduler = StepLR(encoder_lv1_optim,step_size=1000,gamma=0.1)
-    encoder_lv2_optim = torch.optim.Adam(encoder_lv2.parameters(),lr=LEARNING_RATE)
-    encoder_lv2_scheduler = StepLR(encoder_lv2_optim,step_size=1000,gamma=0.1)
-    encoder_lv3_optim = torch.optim.Adam(encoder_lv3.parameters(),lr=LEARNING_RATE)
-    encoder_lv3_scheduler = StepLR(encoder_lv3_optim,step_size=1000,gamma=0.1)
 
-    decoder_lv1_optim = torch.optim.Adam(decoder_lv1.parameters(),lr=LEARNING_RATE)
+    encoder_lv1_scheduler = StepLR(encoder_lv1_optim,step_size=1000,gamma=0.1)
+    encoder_lv1_optim = torch.optim.Adam(encoder_lv1.parameters(),lr=LEARNING_RATE)
+    encoder_lv2_scheduler = StepLR(encoder_lv2_optim,step_size=1000,gamma=0.1)
+    encoder_lv2_optim = torch.optim.Adam(encoder_lv2.parameters(),lr=LEARNING_RATE)
+    encoder_lv3_scheduler = StepLR(encoder_lv3_optim,step_size=1000,gamma=0.1)
+    encoder_lv3_optim = torch.optim.Adam(encoder_lv3.parameters(),lr=LEARNING_RATE)
+
     decoder_lv1_scheduler = StepLR(decoder_lv1_optim,step_size=1000,gamma=0.1)
-    decoder_lv2_optim = torch.optim.Adam(decoder_lv2.parameters(),lr=LEARNING_RATE)
+    decoder_lv1_optim = torch.optim.Adam(decoder_lv1.parameters(),lr=LEARNING_RATE)
     decoder_lv2_scheduler = StepLR(decoder_lv2_optim,step_size=1000,gamma=0.1)
-    decoder_lv3_optim = torch.optim.Adam(decoder_lv3.parameters(),lr=LEARNING_RATE)
+    decoder_lv2_optim = torch.optim.Adam(decoder_lv2.parameters(),lr=LEARNING_RATE)
     decoder_lv3_scheduler = StepLR(decoder_lv3_optim,step_size=1000,gamma=0.1)
+    decoder_lv3_optim = torch.optim.Adam(decoder_lv3.parameters(),lr=LEARNING_RATE)
 
     if os.path.exists(str('./checkpoints/' + METHOD + "/encoder_lv1.pkl")):
         encoder_lv1.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/encoder_lv1.pkl")))
@@ -204,17 +204,18 @@ def main():
                 stop = time.time()
                 print("epoch:", epoch, "iteration:", iteration+1, "loss:%.4f"%loss.item(), 'time:%.4f'%(stop-start))
                 start = time.time()
-        writer.add_images("Deblur_Epoch:{}".format(epoch),deblur_image.data+0.5, epoch)
-        writer.add_images("Sharp_Epoch:{}".format(epoch),images['sharp_image'], epoch)
+        writer.add_images("Deblur",deblur_image.data+0.5, epoch)
+        writer.add_images("Sharp",images['sharp_image'], epoch)
         writer.add_scalar("train_loss", total_train_loss.item(),epoch)
+        print("整体训练集上的Loss：{}".format(total_train_loss))#item：把tensorboard转化为真实数据    
                 
 
         if (epoch)%200==0:
-            if os.path.exists('./checkpointsnew/' + METHOD + '/epoch' + str(epoch)) == False:
-                os.system('mkdir ./checkpointsnew/' + METHOD + '/epoch' + str(epoch))
+            if os.path.exists('./checkpoints/' + METHOD + '/epoch' + str(epoch)) == False:
+                os.system('mkdir ./checkpoint/' + METHOD + '/epoch' + str(epoch))
             
             print("Testing...")
-            #JJR: 更改为自己的数据目录
+            #JJR: 更改为自己的数据目录,验证时不裁剪
             test_dataset = MyDataset(
                 blur_image_files = './datas/myData/test_blur_file.txt',
                 sharp_image_files = './datas/myData/test_sharp_file.txt',
@@ -270,13 +271,12 @@ def main():
             print("整体测试集上的Loss：{}".format(total_test_loss))#item：把tensorboard转化为真实数据    
             writer.add_scalar("test_loss",total_test_loss,epoch)
             
-        torch.save(encoder_lv1.state_dict(),str('./newcheckpoints/' + METHOD + "/encoder_lv1.pkl"))
-        torch.save(encoder_lv2.state_dict(),str('./newcheckpoints/' + METHOD + "/encoder_lv2.pkl"))
-        torch.save(encoder_lv3.state_dict(),str('./newcheckpoints/' + METHOD + "/encoder_lv3.pkl"))
-        
-        torch.save(decoder_lv1.state_dict(),str('./newcheckpoints/' + METHOD + "/decoder_lv1.pkl"))
-        torch.save(decoder_lv2.state_dict(),str('./newcheckpoints/' + METHOD + "/decoder_lv2.pkl"))
-        torch.save(decoder_lv3.state_dict(),str('./newcheckpoints/' + METHOD + "/decoder_lv3.pkl"))
+        torch.save(encoder_lv1.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv1.pkl"))
+        torch.save(encoder_lv2.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv2.pkl"))
+        torch.save(encoder_lv3.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv3.pkl"))
+        torch.save(decoder_lv1.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv1.pkl"))
+        torch.save(decoder_lv2.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv2.pkl"))
+        torch.save(decoder_lv3.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv3.pkl"))
         print("模型已保存")
     writer.close()  
 
