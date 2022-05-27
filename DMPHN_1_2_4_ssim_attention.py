@@ -23,8 +23,8 @@ attention_blocks = [se_block, cbam_block, eca_block]
 parser = argparse.ArgumentParser(description="Deep Multi-Patch Hierarchical Network")
 parser.add_argument("-e","--epochs",type = int, default = 1000)
 parser.add_argument("-se","--start_epoch",type = int, default = 0)
-parser.add_argument("-b","--batchsize",type = int, default = 2)
-parser.add_argument("-s","--imagesize",type = int, default = 256)
+parser.add_argument("-b","--batchsize",type = int, default = 4)
+parser.add_argument("-s","--imagesize",type = int, default = 512)
 parser.add_argument("-l","--learning_rate", type = float, default = 0.0001)
 parser.add_argument("-g","--gpu",type=int, default=0)
 args = parser.parse_args()
@@ -122,6 +122,16 @@ def main():
     if os.path.exists(str('./checkpoints/' + METHOD + "/encoder_lv3.pkl")):
         encoder_lv3.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/encoder_lv3.pkl")))
         print("load encoder_lv3 success")
+
+    if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv1.pkl")):
+        encoder_lv1.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv1.pkl")))
+        print("load attention_lv1 success")
+    if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv2.pkl")):
+        encoder_lv2.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv2.pkl")))
+        print("load attention_lv2 success")
+    if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv3.pkl")):
+        encoder_lv3.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv3.pkl")))
+        print("load attention_lv3 success")
 
     if os.path.exists(str('./checkpoints/' + METHOD + "/decoder_lv1.pkl")):
         decoder_lv1.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/decoder_lv1.pkl")))
