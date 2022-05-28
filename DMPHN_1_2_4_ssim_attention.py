@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser(description="Deep Multi-Patch Hierarchical Netw
 parser.add_argument("-e","--epochs",type = int, default = 1000)
 parser.add_argument("-se","--start_epoch",type = int, default = 0)
 parser.add_argument("-b","--batchsize",type = int, default = 1)
-parser.add_argument("-s","--imagesize",type = int, default = 128)
+parser.add_argument("-s","--imagesize",type = int, default = 512)
 parser.add_argument("-l","--learning_rate", type = float, default = 0.0001)
 parser.add_argument("-g","--gpu",type=int, default=0)
 args = parser.parse_args()
@@ -124,13 +124,13 @@ def main():
         print("load encoder_lv3 success")
 
     if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv1.pkl")):
-        attention_lv1.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv1.pkl")), strict=False)
+        attention_lv1.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv1.pkl")))
         print("load attention_lv1 success")
     if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv2.pkl")):
-        attention_lv2.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv2.pkl")), strict=False)
+        attention_lv2.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv2.pkl")))
         print("load attention_lv2 success")
     if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv3.pkl")):
-        attention_lv3.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv3.pkl")), strict=False)
+        attention_lv3.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv3.pkl")))
         print("load attention_lv3 success")
 
     if os.path.exists(str('./checkpoints/' + METHOD + "/decoder_lv1.pkl")):
@@ -345,7 +345,9 @@ def main():
 
                     residual_lv3_top = decoder_lv3(feature_lv3_top)
                     residual_lv3_bot = decoder_lv3(feature_lv3_bot)
-                    
+                    residual_lv3_top = torch.clamp(residual_lv3_top, min=-0.5, max=0.5)
+                    residual_lv3_bot = torch.clamp(residual_lv3_bot, min=-0.5, max=0.5)
+
                     feature_lv2_1 = encoder_lv2(images_lv2_1 + residual_lv3_top)
                     feature_lv2_2 = encoder_lv2(images_lv2_2 + residual_lv3_bot)
 
@@ -355,6 +357,7 @@ def main():
 
                     feature_lv2 = torch.cat((feature_lv2_1, feature_lv2_2), 2) + feature_lv3
                     residual_lv2 = decoder_lv2(feature_lv2)
+                    residual_lv2 = torch.clamp(residual_lv2, min=-0.5, max=0.5)
                     
                     feature_lv1 = encoder_lv1(images_lv1 + residual_lv2)
                     #施加attention
@@ -362,6 +365,7 @@ def main():
 
                     feature_lv1 = feature_lv1 + feature_lv2
                     deblur_image = decoder_lv1(feature_lv1)
+                    deblur_image = torch.clamp(deblur_image, min=-0.5, max=0.5)
 
                     #JJR:添加ssim约束
                     loss = mse(deblur_image, gt) + (1- ssim(deblur_image, gt).mean())
@@ -376,15 +380,15 @@ def main():
             print("整体测试集上的Loss：{}".format(total_test_loss))#item：把tensorboard转化为真实数据    
             writer.add_scalar("test_loss",total_test_loss,epoch)
             
-        torch.save(encoder_lv1.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv1.pkl"))
-        torch.save(encoder_lv2.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv2.pkl"))
-        torch.save(encoder_lv3.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv3.pkl"))
-        torch.save(attention_lv1.state_dict(),str('./checkpoints/' + METHOD + "/attention_lv1.pkl"))
-        torch.save(attention_lv2.state_dict(),str('./checkpoints/' + METHOD + "/attention_lv2.pkl"))
-        torch.save(attention_lv3.state_dict(),str('./checkpoints/' + METHOD + "/attention_lv3.pkl"))
-        torch.save(decoder_lv1.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv1.pkl"))
-        torch.save(decoder_lv2.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv2.pkl"))
-        torch.save(decoder_lv3.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv3.pkl"))
+        torch.save(encoder_lv1.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv1.pkl"), _use_new_zipfile_serialization=False)
+        torch.save(encoder_lv2.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv2.pkl"), _use_new_zipfile_serialization=False)
+        torch.save(encoder_lv3.state_dict(),str('./checkpoints/' + METHOD + "/encoder_lv3.pkl"), _use_new_zipfile_serialization=False)
+        torch.save(attention_lv1.state_dict(),str('./checkpoints/' + METHOD + "/attention_lv1.pkl"), _use_new_zipfile_serialization=False)
+        torch.save(attention_lv2.state_dict(),str('./checkpoints/' + METHOD + "/attention_lv2.pkl"), _use_new_zipfile_serialization=False)
+        torch.save(attention_lv3.state_dict(),str('./checkpoints/' + METHOD + "/attention_lv3.pkl"), _use_new_zipfile_serialization=False)
+        torch.save(decoder_lv1.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv1.pkl"), _use_new_zipfile_serialization=False)
+        torch.save(decoder_lv2.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv2.pkl"), _use_new_zipfile_serialization=False)
+        torch.save(decoder_lv3.state_dict(),str('./checkpoints/' + METHOD + "/decoder_lv3.pkl"), _use_new_zipfile_serialization=False)
         print("模型已保存")
     writer.close()  
 
