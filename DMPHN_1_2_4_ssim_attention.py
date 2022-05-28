@@ -23,14 +23,14 @@ attention_blocks = [se_block, cbam_block, eca_block]
 parser = argparse.ArgumentParser(description="Deep Multi-Patch Hierarchical Network")
 parser.add_argument("-e","--epochs",type = int, default = 1000)
 parser.add_argument("-se","--start_epoch",type = int, default = 0)
-parser.add_argument("-b","--batchsize",type = int, default = 4)
-parser.add_argument("-s","--imagesize",type = int, default = 512)
+parser.add_argument("-b","--batchsize",type = int, default = 1)
+parser.add_argument("-s","--imagesize",type = int, default = 128)
 parser.add_argument("-l","--learning_rate", type = float, default = 0.0001)
 parser.add_argument("-g","--gpu",type=int, default=0)
 args = parser.parse_args()
 
 #Hyper Parameters
-METHOD = "DMPHN_1_2_4"
+METHOD = "DMPHN_1_2_4_ssim_attention"
 LEARNING_RATE = args.learning_rate
 EPOCHS = args.epochs
 GPU = args.gpu
@@ -124,13 +124,13 @@ def main():
         print("load encoder_lv3 success")
 
     if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv1.pkl")):
-        encoder_lv1.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv1.pkl")))
+        attention_lv1.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv1.pkl")), strict=False)
         print("load attention_lv1 success")
     if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv2.pkl")):
-        encoder_lv2.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv2.pkl")))
+        attention_lv2.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv2.pkl")), strict=False)
         print("load attention_lv2 success")
     if os.path.exists(str('./checkpoints/' + METHOD + "/attention_lv3.pkl")):
-        encoder_lv3.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv3.pkl")))
+        attention_lv3.load_state_dict(torch.load(str('./checkpoints/' + METHOD + "/attention_lv3.pkl")), strict=False)
         print("load attention_lv3 success")
 
     if os.path.exists(str('./checkpoints/' + METHOD + "/decoder_lv1.pkl")):
@@ -186,7 +186,7 @@ def main():
 
             # 裁剪图像
             # lv1图像 [1, 3, 256, 256]
-            images_lv1 = Variable(images['blur_image'] - 0.5).cuda(GPU)
+            images_lv1 = Variable(images['blur_image'] - 0.5).cuda(GPU) #数据范围[-0.5,0.5]
             # lv2图像 [1, 3, 256, 256] -> [1, 3, 128, 256]
             images_lv2_1 = images_lv1[:,:,0:int(H/2),:]
             images_lv2_2 = images_lv1[:,:,int(H/2):H,:]
@@ -219,6 +219,8 @@ def main():
             # lv3去模糊结果[1, 3, 128, 256]
             residual_lv3_top = decoder_lv3(feature_lv3_top)
             residual_lv3_bot = decoder_lv3(feature_lv3_bot)
+            residual_lv3_top = torch.clamp(residual_lv3_top, min=-0.5, max=0.5)
+            residual_lv3_bot = torch.clamp(residual_lv3_bot, min=-0.5, max=0.5)
 
             # 将lv3decoder结果与lv2图像进行拼接，送入lv2decoder得到lv2的patch特征
             # lv2特征[1, 128, 32, 64]
@@ -234,7 +236,7 @@ def main():
             # 将lv2的最终特征送入decoder，得到lv2的去模糊结果
             # lv2去模糊结果[1, 3, 256, 256]
             residual_lv2 = decoder_lv2(feature_lv2)
-
+            residual_lv2 = torch.clamp(residual_lv2, min=-0.5, max=0.5)
             # 将lv2去模糊结果与lv1图像相加送入Encoder，再与lv2最终特征相加，得到lv1特征
             # lv1 特征 [1, 128, 64, 64]
             feature_lv1 = encoder_lv1(images_lv1 + residual_lv2)
@@ -247,6 +249,7 @@ def main():
             # 使用lv1特征进行去模糊，得到lv1的去模糊结果
             # lv1去模糊结果 [1, 3, 256, 256]
             deblur_image = decoder_lv1(feature_lv1)
+            deblur_image = torch.clamp(deblur_image, min=-0.5, max=0.5)
 
             loss_lv1 = mse(deblur_image, gt)
             # print('mse:', loss_lv1.item())
