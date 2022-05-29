@@ -255,7 +255,7 @@ def main():
             # print('mse:', loss_lv1.item())
             
             #JJR:添加ssim约束
-            loss_ssim = 1- ssim(deblur_image, gt).mean()
+            loss_ssim = 1- ssim(deblur_image, gt).sum()
             # print('ssim:', 1 - loss_ssim.item())
             loss = loss_lv1 + loss_ssim
             # print('loss:', loss.item())
@@ -368,7 +368,7 @@ def main():
                     deblur_image = torch.clamp(deblur_image, min=-0.5, max=0.5)
 
                     #JJR:添加ssim约束
-                    loss = mse(deblur_image, gt) + (1- ssim(deblur_image, gt).mean())
+                    loss = mse(deblur_image, gt) + (1- ssim(deblur_image, gt).sum())
                     total_test_loss=loss.item()+total_test_loss
 
 
