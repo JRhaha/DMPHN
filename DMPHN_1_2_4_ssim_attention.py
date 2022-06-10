@@ -23,7 +23,7 @@ attention_blocks = [se_block, cbam_block, eca_block]
 parser = argparse.ArgumentParser(description="Deep Multi-Patch Hierarchical Network")
 parser.add_argument("-e","--epochs",type = int, default = 1000)
 parser.add_argument("-se","--start_epoch",type = int, default = 0)
-parser.add_argument("-b","--batchsize",type = int, default = 1)
+parser.add_argument("-b","--batchsize",type = int, default = 6)
 parser.add_argument("-s","--imagesize",type = int, default = 512)
 parser.add_argument("-l","--learning_rate", type = float, default = 0.0001)
 parser.add_argument("-g","--gpu",type=int, default=0)
@@ -178,7 +178,8 @@ def main():
         start = 0
         total_train_loss=0
         for iteration, images in enumerate(train_dataloader):            
-            mse = nn.MSELoss().cuda(GPU)          
+            mse = nn.MSELoss().cuda(GPU) 
+            mae = nn.L1Loss().cuda(GPU)         
             gt = Variable(images['sharp_image'] - 0.5).cuda(GPU)            
             H = gt.size(2)
             W = gt.size(3)
@@ -251,7 +252,8 @@ def main():
             deblur_image = decoder_lv1(feature_lv1)
             deblur_image = torch.clamp(deblur_image, min=-0.5, max=0.5)
 
-            loss_lv1 = mse(deblur_image, gt)
+            # loss_lv1 = mse(deblur_image, gt)
+            loss_lv1 = mae(deblur_image, gt)
             # print('mse:', loss_lv1.item())
             
             #JJR:添加ssim约束
