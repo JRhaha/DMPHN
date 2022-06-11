@@ -257,7 +257,7 @@ def main():
             # print('mse:', loss_lv1.item())
             
             #JJR:添加ssim约束
-            loss_ssim = 1- ssim(deblur_image, gt).sum()
+            loss_ssim = 1- ssim(deblur_image, gt).mean()
             # print('ssim:', 1 - loss_ssim.item())
             loss = loss_lv1 + loss_ssim
             # print('loss:', loss.item())
