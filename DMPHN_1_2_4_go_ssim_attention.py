@@ -161,14 +161,14 @@ def main():
         
         print("Training...")
         
-        train_dataset = MyDataset(
-            #JJR:更改为自己的数据目录
-            blur_image_files = './datas/myData/train_blur_file.txt',
-            sharp_image_files = './datas/myData/train_sharp_file.txt',
-            root_dir = './datas/myData',
-            # blur_image_files = './datas/GoPro/train_blur_file.txt',
-            # sharp_image_files = './datas/GoPro/train_sharp_file.txt',
-            # root_dir = './datas/GoPro/',
+        train_dataset = GoProDataset(
+            #JJR:更改为GOPRO的数据目录
+            # blur_image_files = './datas/myData/train_blur_file.txt',
+            # sharp_image_files = './datas/myData/train_sharp_file.txt',
+            # root_dir = './datas/myData',
+            blur_image_files = './datas/GoPro/train_blur_file.txt',
+            sharp_image_files = './datas/GoPro/train_sharp_file.txt',
+            root_dir = './datas/GoPro/',
             crop = True,
             crop_size = IMAGE_SIZE,
             transform = transforms.Compose([
@@ -304,11 +304,11 @@ def main():
                 os.system('mkdir ./checkpoint/' + METHOD + '/epoch' + str(epoch))
             
             print("Testing...")
-            #JJR: 更改为自己的数据目录,验证时不裁剪
-            test_dataset = MyDataset(
-                blur_image_files = './datas/myData/test_blur_file.txt',
-                sharp_image_files = './datas/myData/test_sharp_file.txt',
-                root_dir = './datas/myData/',
+            #JJR: 还原为GOPRO
+            test_dataset = GoProDataset(
+                blur_image_files = './datas/GoPro/test_blur_file.txt',
+                sharp_image_files = './datas/GoPro/test_sharp_file.txt',
+                root_dir = './datas/GoPro',
                 crop = True,
                 crop_size = IMAGE_SIZE,
                 transform = transforms.Compose([
@@ -378,7 +378,7 @@ def main():
                     test_time += stop - start
                     print('RunTime:%.4f'%(stop-start), '  Average Runtime:%.4f'%(test_time/(iteration+1)))
                     #JJR:保存的路径
-                    save_deblur_images(deblur_image.data + 0.5, iteration, epoch)
+                    # save_deblur_images(deblur_image.data + 0.5, iteration, epoch)
             print("整体测试集上的Loss：{}".format(total_test_loss))#item：把tensorboard转化为真实数据    
             writer.add_scalar("test_loss",total_test_loss,epoch)
             
