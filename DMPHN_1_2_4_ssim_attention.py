@@ -1,10 +1,12 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
 import numpy as np
-import os
+
 import math
 import argparse
 import random
@@ -163,7 +165,7 @@ def main():
         
         train_dataset = MyDataset(
             #JJR:更改为自己的数据目录
-            blur_image_files = './datas/myData/train_blur_file.txt',
+            blur_image_files = './datas/myData/train_capture_file.txt',
             sharp_image_files = './datas/myData/train_sharp_file.txt',
             root_dir = './datas/myData',
             # blur_image_files = './datas/GoPro/train_blur_file.txt',
@@ -306,7 +308,7 @@ def main():
             print("Testing...")
             #JJR: 更改为自己的数据目录,验证时不裁剪
             test_dataset = MyDataset(
-                blur_image_files = './datas/myData/test_blur_file.txt',
+                blur_image_files = './datas/myData/test_capture_file.txt',
                 sharp_image_files = './datas/myData/test_sharp_file.txt',
                 root_dir = './datas/myData/',
                 crop = True,
