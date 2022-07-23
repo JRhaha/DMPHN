@@ -25,7 +25,7 @@ attention_blocks = [se_block, cbam_block, eca_block]
 parser = argparse.ArgumentParser(description="Deep Multi-Patch Hierarchical Network")
 parser.add_argument("-e","--epochs",type = int, default = 1000)
 parser.add_argument("-se","--start_epoch",type = int, default = 0)
-parser.add_argument("-b","--batchsize",type = int, default = 6)
+parser.add_argument("-b","--batchsize",type = int, default = 8)
 parser.add_argument("-s","--imagesize",type = int, default = 512)
 parser.add_argument("-l","--learning_rate", type = float, default = 0.0001)
 parser.add_argument("-g","--gpu",type=int, default=0)
