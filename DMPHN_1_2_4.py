@@ -20,9 +20,9 @@ from torch.utils.tensorboard import SummaryWriter
 parser = argparse.ArgumentParser(description="Deep Multi-Patch Hierarchical Network")
 parser.add_argument("-e","--epochs",type = int, default = 1000)
 parser.add_argument("-se","--start_epoch",type = int, default = 0)
-parser.add_argument("-b","--batchsize",type = int, default = 1)
-parser.add_argument("-s","--imagesize",type = int, default = 320)
-parser.add_argument("-l","--learning_rate", type = float, default = 0.00002)
+parser.add_argument("-b","--batchsize",type = int, default = 6)
+parser.add_argument("-s","--imagesize",type = int, default = 520)
+parser.add_argument("-l","--learning_rate", type = float, default = 0.0001)
 parser.add_argument("-g","--gpu",type=int, default=0)
 args = parser.parse_args()
 
@@ -130,7 +130,7 @@ def main():
         
         train_dataset = MyDataset(
             #JJR:更改为自己的数据目录
-            blur_image_files = './datas/myData/train_blur_file.txt',
+            blur_image_files = './datas/myData/train_capture_file.txt',
             sharp_image_files = './datas/myData/train_sharp_file.txt',
             root_dir = './datas/myData',
             # blur_image_files = './datas/GoPro/train_blur_file.txt',
@@ -217,7 +217,7 @@ def main():
             print("Testing...")
             #JJR: 更改为自己的数据目录,验证时不裁剪
             test_dataset = MyDataset(
-                blur_image_files = './datas/myData/test_blur_file.txt',
+                blur_image_files = './datas/myData/test_capture_file.txt',
                 sharp_image_files = './datas/myData/test_sharp_file.txt',
                 root_dir = './datas/myData/',
                 crop = True,
